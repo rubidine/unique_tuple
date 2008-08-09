@@ -1,0 +1,7 @@
+UniqueTuple
+===========
+
+Adds a new ActiveRecord validation:
+validates_uniqueness_of_tuple *columns
+
+This will validate that no object has the same values for the set of columns.
