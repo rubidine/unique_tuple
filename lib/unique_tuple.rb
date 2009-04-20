@@ -23,7 +23,8 @@ module ActiveRecord
   module Validations
     module ClassMethods
       def validates_uniqueness_of_tuple *columns
-        options = columns.last.is_a?(Hash) ? attrs.pop.symbolize_keys : {}
+        options = columns.extract_options!
+        options.symbolize_keys!
 
         send(validation_method(options[:on] || :save)) do |record|
           q = [columns.collect{|x| "#{x.to_s}=?"}.join(' AND ')]
@@ -33,14 +34,10 @@ module ActiveRecord
             q[0] << " AND #{pk} != ?"
             q << record.send(pk)
           end
-          if self.find(:first, :conditions => q)
+          if count(:conditions => q) > 0
             record.errors.add(options[:error_key] || 'tuple', 'is not unique')
           end
         end
-
-        # play nicely with the reflect_on_validations plugin
-        # (degrades cleanly)
-        write_inheritable_array "validations", [ActiveRecord::Reflection::MacroReflection.new(:validates_uniqueness_of_tuple, columns, options, self)]
       end
     end
   end
